@@ -3,7 +3,10 @@ google-generativeai
 python-dotenv
 langchain==0.1.14
 langchain_google_genai
-faiss-cpu==1.7.4
+#faiss-cpu==1.7.4
 chromadb
 PyPDF2
 sentence-transformers
+
+faiss-cpu==1.7.2
+python_version<3.11
