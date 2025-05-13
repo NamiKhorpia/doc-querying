@@ -1,9 +1,9 @@
 streamlit
 google-generativeai
 python-dotenv
-langchain
-PyPDF2
-chromadb
-faiss-cpu
+langchain==0.1.14
 langchain_google_genai
+faiss-cpu==1.7.4
+chromadb
+PyPDF2
 sentence-transformers
