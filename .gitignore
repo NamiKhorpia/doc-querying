@@ -1,0 +1,23 @@
+# Ignore virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Ignore IDE/editor configs
+.vscode/
+.idea/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore environment variable files
+.env
+
+# Ignore any other folders you don't want
+faiss_index/
