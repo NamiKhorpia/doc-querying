@@ -15,6 +15,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from google.api_core.exceptions import ResourceExhausted
+from docx import Document
 
 # Load API key from .env
 load_dotenv()
@@ -24,13 +25,32 @@ if not api_key:
 
 genai.configure(api_key=api_key)
 
-def get_pdf_text(pdf_docs):
+def get_file_text(uploaded_files):
     text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
+    for uploaded_file in uploaded_files:
+        file_name = uploaded_file.name.lower()
+        if file_name.endswith(".pdf"):
+            pdf_reader = PdfReader(uploaded_file)
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        elif file_name.endswith(".docx"):
+            doc = Document(uploaded_file)
+            for para in doc.paragraphs:
+                text += para.text + "\n"
+        elif file_name.endswith(".txt"):
+            text += uploaded_file.read().decode("utf-8")  # Handles simple text files
+        else:
+            st.warning(f"Unsupported file type: {file_name}")
     return text
+
+
+# def get_pdf_text(pdf_docs):
+#     text = ""
+#     for pdf in pdf_docs:
+#         pdf_reader = PdfReader(pdf)
+#         for page in pdf_reader.pages:
+#             text += page.extract_text()
+#     return text
 
 def get_text_chunks(text):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
@@ -51,16 +71,7 @@ def get_conversational_chain():
 
     Answer:
     """
-
-    #prompt_template = """
-    #Answer the question as detailed as possible from the provided context. If the answer is not in
-    #the provided context, just say "answer is not available in the context". Don't make up answers.
-
-    #Context:\n{context}\n
-    #Question:\n{question}\n
-
-    #Answer:
-    #"""
+    
     try:
         model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5)
     except ResourceExhausted:
@@ -85,7 +96,7 @@ def user_input(user_question):
 
 def main():
     st.set_page_config("Doc Querying")
-    st.header("Document querying with Google AI")
+    st.header("Document-based QA system")
 
     user_question = st.text_input("Ask a Question from the PDF Files")
     if user_question:
@@ -93,10 +104,15 @@ def main():
 
     with st.sidebar:
         st.title("Menu:")
-        pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
+        uploaded_files = st.file_uploader("Upload PDF, DOCX, or TXT files",
+                                          type=["pdf", "docx", "txt"],
+                                          accept_multiple_files=True)
+
+        #pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
         if st.button("Submit & Process"):
             with st.spinner("Processing..."):
-                raw_text = get_pdf_text(pdf_docs)
+                #raw_text = get_pdf_text(pdf_docs)
+                raw_text = get_file_text(uploaded_files)
                 text_chunks = get_text_chunks(raw_text)
                 get_vector_store(text_chunks)
                 st.success("Done")
